@@ -192,16 +192,18 @@ func (r *RawTLSAssets) compact(cfg *Config, kmsSvc encryptService) (*CompactTLSA
 			return ""
 		}
 
-		encryptInput := kms.EncryptInput{
-			KeyId:     aws.String(cfg.KMSKeyARN),
-			Plaintext: data,
-		}
+		if cfg.KMSKeyARN != "" {
+			encryptInput := kms.EncryptInput{
+				KeyId:     aws.String(cfg.KMSKeyARN),
+				Plaintext: data,
+			}
 
-		var encryptOutput *kms.EncryptOutput
-		if encryptOutput, err = kmsSvc.Encrypt(&encryptInput); err != nil {
-			return ""
+			var encryptOutput *kms.EncryptOutput
+			if encryptOutput, err = kmsSvc.Encrypt(&encryptInput); err != nil {
+				return ""
+			}
+			data = encryptOutput.CiphertextBlob
 		}
-		data = encryptOutput.CiphertextBlob
 
 		var out string
 		if out, err = compressData(data); err != nil {

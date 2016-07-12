@@ -7,7 +7,8 @@ import (
 )
 
 func GetAMIData(channel string) (map[string]map[string]string, error) {
-	r, err := http.Get(fmt.Sprintf("https://coreos.com/dist/aws/aws-%s.json", channel))
+	//r, err := http.Get(fmt.Sprintf("https://coreos.com/dist/aws/aws-%s.json", channel))
+	r, err := http.Get("http://localhost:8000/ami.json")
 	if err != nil {
 		return nil, fmt.Errorf("failed to get AMI data: %s: %v", channel, err)
 	}

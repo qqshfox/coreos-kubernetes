@@ -87,7 +87,7 @@ coreos:
 {{ end }}
 
     - name: decrypt-tls-assets.service
-      enable: true
+      enable: {{ne .KMSKeyARN ""}}
       content: |
         [Unit]
         Description=decrypt kubelet tls assets using amazon kms
@@ -760,15 +760,15 @@ write_files:
             }
         }
 
-  - path: /etc/kubernetes/ssl/ca.pem.enc
+  - path: /etc/kubernetes/ssl/ca.pem{{ if ne .KMSKeyARN "" }}.enc{{ end }}
     encoding: gzip+base64
     content: {{.TLSConfig.CACert}}
 
-  - path: /etc/kubernetes/ssl/apiserver.pem.enc
+  - path: /etc/kubernetes/ssl/apiserver.pem{{ if ne .KMSKeyARN "" }}.enc{{ end }}
     encoding: gzip+base64
     content: {{.TLSConfig.APIServerCert}}
 
-  - path: /etc/kubernetes/ssl/apiserver-key.pem.enc
+  - path: /etc/kubernetes/ssl/apiserver-key.pem{{ if ne .KMSKeyARN "" }}.enc{{ end }}
     encoding: gzip+base64
     content: {{.TLSConfig.APIServerKey}}
 

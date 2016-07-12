@@ -1,6 +1,9 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
   "Description": "kube-aws Kubernetes cluster {{.ClusterName}}",
+  "Conditions": {
+    "IsChinaRegion": {"Fn::Equals": [{"Ref": "AWS::Region"}, "cn-north-1"]}
+  },
   "Resources": {
     "AlarmControllerRecover": {
       "Properties": {
@@ -9,7 +12,9 @@
             "Fn::Join": [
               "",
               [
-                "arn:aws:automate:",
+                {
+                  "Fn::If": ["IsChinaRegion", "arn:aws-cn:automate:", "arn:aws:automate:"]
+                },
                 {
                   "Ref": "AWS::Region"
                 },
@@ -148,7 +153,9 @@
               "Effect": "Allow",
               "Principal": {
                 "Service": [
-                  "ec2.amazonaws.com"
+                  {
+                    "Fn::If": ["IsChinaRegion", "ec2.amazonaws.com.cn", "ec2.amazonaws.com"]
+                  }
                 ]
               }
             }
@@ -169,12 +176,13 @@
                   "Action": "elasticloadbalancing:*",
                   "Effect": "Allow",
                   "Resource": "*"
-                },
+                }{{ if ne .KMSKeyARN "" }},
                 {
                   "Action" : "kms:Decrypt",
                   "Effect" : "Allow",
                   "Resource" : "{{.KMSKeyARN}}"
                 }
+                {{end}}
               ],
               "Version": "2012-10-17"
             },
@@ -195,7 +203,9 @@
               "Effect": "Allow",
               "Principal": {
                 "Service": [
-                  "ec2.amazonaws.com"
+                  {
+                    "Fn::If": ["IsChinaRegion", "ec2.amazonaws.com.cn", "ec2.amazonaws.com"]
+                  }
                 ]
               }
             }
@@ -222,11 +232,13 @@
                   "Effect": "Allow",
                   "Resource": "*"
                 },
+                {{ if ne .KMSKeyARN "" }}
                 {
                   "Action" : "kms:Decrypt",
                   "Effect" : "Allow",
                   "Resource" : "{{.KMSKeyARN}}"
                 },
+                {{ end }}
                 {
                   "Action": [
                     "ecr:GetAuthorizationToken",

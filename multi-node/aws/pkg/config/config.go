@@ -104,6 +104,7 @@ type Cluster struct {
 	Region                   string            `yaml:"region,omitempty"`
 	AvailabilityZone         string            `yaml:"availabilityZone,omitempty"`
 	ReleaseChannel           string            `yaml:"releaseChannel,omitempty"`
+	AmiId                    string            `yaml:"amiId,omitempty"`
 	ControllerInstanceType   string            `yaml:"controllerInstanceType,omitempty"`
 	ControllerRootVolumeSize int               `yaml:"controllerRootVolumeSize,omitempty"`
 	WorkerCount              int               `yaml:"workerCount,omitempty"`
@@ -154,10 +155,13 @@ func (c Cluster) Config() (*Config, error) {
 	if config.UseCalico {
 		config.K8sNetworkPlugin = "cni"
 	}
+	config.AMI = c.AmiId
 
-	var err error
-	if config.AMI, err = getAMI(config.Region, config.ReleaseChannel); err != nil {
-		return nil, fmt.Errorf("failed getting AMI for config: %v", err)
+	if config.AMI == "" {
+		var err error
+		if config.AMI, err = getAMI(config.Region, config.ReleaseChannel); err != nil {
+			return nil, fmt.Errorf("failed getting AMI for config: %v", err)
+		}
 	}
 
 	//Set logical name constants
@@ -422,7 +426,7 @@ func (c Cluster) valid() error {
 	if c.ClusterName == "" {
 		return errors.New("clusterName must be set")
 	}
-	if c.KMSKeyARN == "" {
+	if !strings.HasPrefix(c.Region, "cn") && c.KMSKeyARN == "" {
 		return errors.New("kmsKeyArn must be set")
 	}
 
